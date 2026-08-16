@@ -30,12 +30,14 @@ in the toolbar — click it and pin **mem** so it's always visible.
 
 ## Step 2 — Open it and load the demo (30 seconds)
 
-Press **`Ctrl+Shift+M`** (Mac: `Cmd+Shift+M`), or click the mem icon → **Open dashboard**.
+Press **`Ctrl+Shift+M`** (Mac: `Cmd+Shift+M`).
+
+> Or **right-click** the mem toolbar icon → **Open mem dashboard**.
 
 You'll see a setup screen. **You do not need an API key to try this.**
 
 Click **"See it work first"** — this loads 5 realistic demo memories
-(a research paper, an article, class notes, an email, a document).
+(two research papers, an article, a set of lecture notes from Drive, and an email).
 
 ---
 
@@ -57,7 +59,7 @@ Then try these, in order — each shows a different capability:
 | Type this | What it demonstrates |
 | --- | --- |
 | `what did I read this week` | Time-scoped recall on real calendar-day boundaries |
-| `Give me a daily summary` | A written narrative of your day, not a list of links |
+| `Give me a daily summary` | A written narrative of your day. Works without a key — the prose is generated locally; a model only makes it richer |
 | Click **Sessions** tab | Activity grouped into work sessions, named automatically |
 | Click **People & topics** → **Build the graph** | Every person and topic across all sources |
 | Click **Resurface** | A forgetting curve over your own memories |
@@ -101,7 +103,7 @@ python tools/serve.py 3492 extension
 
 Open **http://localhost:3492/test/harness.html**
 
-127 tests run automatically. Look for the headline result under
+129 tests run automatically. Look for the headline result under
 *"Buried facts in long documents"*:
 
 > `chunk #14 of 20: 0.2374 vs document-level 0.0543 — 4.4× better`
@@ -133,7 +135,8 @@ missing, rate-limited, or you're offline — so it never simply stops working.
 blocks extensions there. Try any normal website.
 
 **Nothing happens when I press Ctrl+Shift+M** — another extension may have
-claimed that shortcut. Click the mem icon → **Open dashboard** instead.
+claimed that shortcut. **Right-click** the mem toolbar icon → **Open mem
+dashboard** instead.
 
 **The reminder card didn't appear on a chat site** — it only reacts to
 messages that arrive *after* you enable it, and only when they contain both a
@@ -154,6 +157,6 @@ If you're reviewing the implementation rather than the product:
 | `extension/lib/index.js` | The retrieval index: ordinal table, packed vector shards, BM25 postings. Comments record the bugs that shaped it |
 | `extension/lib/search.js` | Two-stage hybrid retrieval with Reciprocal Rank Fusion and MMR |
 | `extension/lib/commitments.js` | Local time + obligation parsing, no model involved |
-| `extension/test/harness.js` | 127 tests, deterministic, no network |
+| `extension/test/harness.js` | 129 tests, deterministic, no network |
 
 `README.md` has the architecture diagram and citations.

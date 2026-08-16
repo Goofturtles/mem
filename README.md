@@ -226,7 +226,7 @@ roughly seven of 255 available levels; the per-vector scale is measured at
 python mem/tools/serve.py 3492 mem/extension
 ```
 
-Then open `http://localhost:3492/test/harness.html`. 100 tests covering vector
+Then open `http://localhost:3492/test/harness.html`. 129 tests covering vector
 maths, chunk coverage, index persistence across reloads, v1→v2 migration,
 buried-fact retrieval, MMR de-duplication, embedding-space isolation, episode
 segmentation, entity alias resolution, open loops, the forgetting curve, and

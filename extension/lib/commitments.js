@@ -161,7 +161,9 @@ function parseDay(text, now) {
   }
   if (/\b(?:eow|end of (?:the )?week)\b/.test(lc)) {
     const dow = (new Date(now).getDay() + 6) % 7; // Monday = 0
-    return { day: startOfDay(now + (4 - dow) * DAY), text: 'end of the week', explicit: true, defaultHour: 17 };
+    // (4 - dow) is negative on Sat/Sun, which resolved to the Friday just
+    // gone. Roll forward to the coming one.
+    return { day: startOfDay(now + (((4 - dow) + 7) % 7) * DAY), text: 'end of the week', explicit: true, defaultHour: 17 };
   }
 
   // ISO or numeric date: 2026-03-05, 3/5, 05/03
@@ -244,7 +246,7 @@ export function parseWhen(text, now = Date.now()) {
   const relative = parseRelative(text, now);
   // "in 2 hours" is as deliberate as naming a weekday, so it counts as
   // naming a day for the purposes of standing in for a cue word.
-  if (relative) return { at: relative.at, whenText: relative.text, explicit: true, namesADay: true, hasClock: true };
+  if (relative) return { at: relative.at, whenText: relative.text, explicit: true, namesADay: false, hasClock: true };
 
   const day = parseDay(text, now);
   const clock = parseClock(text);
@@ -291,7 +293,11 @@ const NOISE = /^\s*(https?:\/\/|[\[\{<]|\d+[-–]\d+\s*$)/;
 
 // Past-tense narration. Checked before anything else scores, because these
 // lines often parse a perfectly plausible future time.
-const PAST_TENSE = /\b(was|were|went|had|used to|did you|didn'?t|yesterday|last night|last week|last weekend|last month|ago)\b/i;
+const PAST_TENSE = /(was|were|went|had|used to|did you|didn'?t)/i;
+
+// These name a past time outright, so they veto even when something else in
+// the line parses as future.
+const EXPLICITLY_PAST = /(yesterday|last night|last week|last weekend|last month|last year|\d+\s*(?:days?|weeks?|months?|years?)\s+ago)/i;
 
 /**
  * Decide whether a message contains something worth offering to remind about.
@@ -307,11 +313,6 @@ export function detectCommitment(text, { now = Date.now(), minConfidence = 0.45 
   if (raw.length < 8 || raw.length > 600) return null;
   if (NOISE.test(raw)) return null;
 
-  // Narration about the past is never a commitment, however plausible a
-  // future time it happens to parse. "this weekend was wild" and "did you
-  // see the game last night" both did.
-  if (/(was|were|went|did you|had|used to|yesterday|last night|last week|last month|ago)/i.test(raw)) return null;
-
   const when = parseWhen(raw, now);
   if (!when) return null;
 
@@ -325,7 +326,11 @@ export function detectCommitment(text, { now = Date.now(), minConfidence = 0.45 
   // future time it happens to parse. "did you see the game last night" has a
   // cue ("game") and parses to 8pm; "this weekend was wild" parses to
   // Saturday. Both are someone talking about something that already happened.
-  if (PAST_TENSE.test(raw)) return null;
+  // Explicitly-past phrases veto outright. A past-tense *verb* only vetoes
+  // when nothing pins the line to a future day — "the meeting was moved to
+  // tomorrow at 3pm" is past-tense about a future event.
+  if (EXPLICITLY_PAST.test(raw)) return null;
+  if (PAST_TENSE.test(raw) && !(when.namesADay && when.at > now)) return null;
 
   let confidence = 0;
   let cue = null;
