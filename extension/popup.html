@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>mem</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="logo">
+      <div class="glyph">m</div>
+      <span class="brand">mem</span>
+      <span class="provider-chip" id="popup-provider" hidden><span class="provider-dot"></span><span id="popup-provider-name">Gemini</span></span>
+    </div>
+    <div class="header-actions">
+      <button class="link" id="save-current" title="Save current page (⌃⇧S)">Save page</button>
+      <button class="link" id="open-options" title="Settings">Settings</button>
+    </div>
+  </header>
+
+  <div class="searchbar">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="7"/><path d="m21 21-3.5-3.5"/></svg>
+    <input id="search" type="text" placeholder="Search or ask anything you've remembered" autocomplete="off" />
+    <span class="badge" id="result-count"></span>
+  </div>
+
+  <div class="scan-strip hidden" id="scan-strip">
+    <div class="strip-dot"></div>
+    <span id="scan-strip-text">Indexing your memory…</span>
+  </div>
+
+  <div class="starters" id="starters"></div>
+
+  <section class="results" id="results"></section>
+
+  <section class="answer hidden" id="answer-section">
+    <div class="answer-eyebrow"><div class="pulse" id="answer-pulse"></div><span id="answer-label">Recalling</span></div>
+    <div class="answer-body" id="answer-body"></div>
+  </section>
+
+  <section class="empty hidden" id="empty">
+    <p class="empty-h">Nothing here yet.</p>
+    <p class="empty-p">Save what you read with <kbd>⌃⇧S</kbd>, or <button id="open-dashboard" class="link inline">open the dashboard</button> to set up.</p>
+  </section>
+
+  <footer>
+    <span class="hint"><kbd>↑↓</kbd> navigate · <kbd>↵</kbd> recall · <kbd>→</kbd> open</span>
+    <span class="count" id="count"></span>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

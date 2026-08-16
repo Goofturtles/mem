@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mem-test",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3492", "--directory", "extension"],
+      "port": 3492,
+      "url": "http://localhost:3492"
+    }
+  ]
+}

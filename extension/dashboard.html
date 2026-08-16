@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>mem — your second memory</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="dashboard-v2.css">
+</head>
+<body>
+  <header class="top">
+    <div class="logo">
+      <div class="glyph">m</div>
+      <div class="brand">
+        <div class="name">mem</div>
+      </div>
+    </div>
+    <nav>
+      <button class="link" id="open-options" title="Settings">Settings</button>
+    </nav>
+  </header>
+
+  <div class="scan-banner hidden" id="scan-banner">
+    <div class="icon"></div>
+    <span id="scan-banner-text">Indexing your memory…</span>
+  </div>
+
+  <main>
+    <section class="hero">
+      <p class="hero-intro" id="hero-intro">Ask anything you've read, watched, written, or been told.</p>
+      <p class="hero-provider" id="hero-provider" hidden>via <strong id="hero-provider-name">Gemini</strong> · <button class="link inline" id="hero-provider-switch">change</button></p>
+      <div class="searchbar">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-3.5-3.5"/></svg>
+        <input id="search" type="text" placeholder="Anything you've ever read" autocomplete="off" aria-label="Search your memory" />
+        <button id="recall-btn" class="recall" aria-label="Recall">
+          <kbd>⏎</kbd>
+        </button>
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+    </section>
+
+    <!-- Conversation thread. Follow-ups keep their context, so this is a
+         thread rather than a single answer card. -->
+    <section class="thread-section hidden" id="thread-section" aria-live="polite">
+      <div class="thread" id="thread"></div>
+      <div class="thread-foot">
+        <button class="link small" id="thread-new">New conversation</button>
+        <button class="link small" id="clear-answer">Dismiss</button>
+      </div>
+    </section>
+
+    <!-- The surfaces that make mem more than a search box. -->
+    <nav class="surfaces" id="surfaces" role="tablist" aria-label="Views">
+      <button class="surface-tab active" role="tab" aria-selected="true" data-view="recent">Recent</button>
+      <button class="surface-tab" role="tab" aria-selected="false" data-view="episodes">Sessions</button>
+      <button class="surface-tab" role="tab" aria-selected="false" data-view="people">People &amp; topics</button>
+      <button class="surface-tab" role="tab" aria-selected="false" data-view="loops">Unfinished<span class="tab-badge hidden" id="loops-badge">0</span></button>
+      <button class="surface-tab" role="tab" aria-selected="false" data-view="resurface">Resurface</button>
+      <button class="surface-tab" role="tab" aria-selected="false" data-view="reminders">Reminders<span class="tab-badge hidden" id="reminders-badge">0</span></button>
+    </nav>
+
+    <section class="results">
+      <div class="results-header">
+        <h2 id="results-title">Recent memories</h2>
+        <span class="count" id="results-count"></span>
+        <button class="link small view-action hidden" id="view-action"></button>
+      </div>
+
+      <!-- Recent / search results -->
+      <div class="cards" id="cards"></div>
+
+      <!-- Sessions -->
+      <div class="panel hidden" id="panel-episodes">
+        <p class="panel-note" id="episodes-note"></p>
+        <div class="episode-list" id="episode-list"></div>
+      </div>
+
+      <!-- People & topics -->
+      <div class="panel hidden" id="panel-people">
+        <div class="kind-filter" id="kind-filter" role="group" aria-label="Entity type">
+          <button class="chip active" data-kind="">All</button>
+          <button class="chip" data-kind="person">People</button>
+          <button class="chip" data-kind="org">Organisations</button>
+          <button class="chip" data-kind="concept">Topics</button>
+          <button class="chip" data-kind="event">Events</button>
+        </div>
+        <p class="panel-note" id="people-note"></p>
+        <div class="entity-grid" id="entity-grid"></div>
+      </div>
+
+      <!-- Unfinished -->
+      <div class="panel hidden" id="panel-loops">
+        <p class="panel-note" id="loops-note"></p>
+        <div class="loop-list" id="loop-list"></div>
+      </div>
+
+      <!-- Resurface -->
+      <div class="panel hidden" id="panel-resurface">
+        <p class="panel-note" id="resurface-note"></p>
+        <div class="resurface-list" id="resurface-list"></div>
+        <h3 class="panel-h hidden" id="connections-h">Things that connect</h3>
+        <div class="connection-list" id="connection-list"></div>
+      </div>
+
+      <!-- Reminders -->
+      <div class="panel hidden" id="panel-reminders">
+        <p class="panel-note" id="reminders-note"></p>
+        <div class="reminder-list" id="reminder-list"></div>
+      </div>
+
+      <div class="onboard hidden" id="onboard">
+        <!-- Step 1: needs a provider -->
+        <div class="onboard-pane" id="pane-key" hidden>
+          <div class="onboard-eyebrow">Step 1 of 1</div>
+          <h3 class="onboard-h">Choose how mem thinks</h3>
+          <p class="onboard-p">mem can run entirely on this device, or use your own API key for stronger results. Either way, your memories never leave your browser.</p>
+          <div class="segment" role="tablist" id="provider-segment">
+            <button type="button" role="tab" class="seg-btn" data-provider="local">On-device · no key</button>
+            <button type="button" role="tab" class="seg-btn active" data-provider="gemini">Gemini · free</button>
+            <button type="button" role="tab" class="seg-btn" data-provider="openai">OpenAI</button>
+          </div>
+
+          <form class="onboard-key" id="onboard-key-form">
+            <input id="onboard-key" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false" aria-label="API key" />
+            <button type="submit" id="onboard-key-save" class="primary">Save</button>
+          </form>
+
+          <div class="onboard-local hidden" id="onboard-local">
+            <p class="onboard-p small" id="local-state">Checking this browser's built-in AI…</p>
+            <button class="primary" id="local-enable" hidden>Use on-device AI</button>
+            <button class="link inline" id="local-download" hidden>Download the model</button>
+            <div class="local-progress hidden" id="local-progress"><div class="bar" id="local-bar"></div></div>
+          </div>
+
+          <div class="onboard-aux">
+            <a id="onboard-get-key" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a key →</a>
+            <span class="dot-sep">·</span>
+            <button class="link inline" id="onboard-demo">See it work first</button>
+          </div>
+          <p class="onboard-status" id="onboard-key-status"></p>
+        </div>
+
+        <!-- Step 2: baseline scan -->
+        <div class="onboard-pane" id="pane-scan" hidden>
+          <div class="onboard-eyebrow">Step 2 of 2</div>
+          <h3 class="onboard-h">Build your memory</h3>
+          <p class="onboard-p">mem will index what you've already browsed, bookmarked, watched, and emailed so it can answer questions across all of it. This runs once.</p>
+
+          <div class="scan-options" id="scan-options">
+            <label class="scan-opt"><input type="checkbox" data-source="history" checked /><span>Browser history</span><span class="hint">last 6 months · no permission prompt</span></label>
+            <label class="scan-opt"><input type="checkbox" data-source="bookmarks" checked /><span>Bookmarks</span><span class="hint">everything saved</span></label>
+            <label class="scan-opt google"><input type="checkbox" data-source="drive" /><span>Google Drive</span><span class="hint">Docs, Slides, Sheets · requires sign-in</span></label>
+            <label class="scan-opt google"><input type="checkbox" data-source="gmail" /><span>Gmail</span><span class="hint">last 500 subjects · requires sign-in</span></label>
+            <label class="scan-opt google"><input type="checkbox" data-source="youtube" /><span>YouTube</span><span class="hint">liked videos + your playlists · requires sign-in</span></label>
+            <label class="scan-opt google"><input type="checkbox" data-source="calendar" /><span>Calendar</span><span class="hint">last 6 months of events · requires sign-in</span></label>
+            <label class="scan-opt google"><input type="checkbox" data-source="classroom" /><span>Google Classroom</span><span class="hint">courses, assignments, announcements · requires sign-in</span></label>
+          </div>
+
+          <div class="scan-actions">
+            <button id="scan-start" class="primary">Start indexing</button>
+            <button id="scan-skip" class="link inline">Skip for now</button>
+          </div>
+
+          <div class="scan-google-note hidden" id="scan-google-note">
+            <p class="hint small">Google sources need an OAuth client ID set up once in <button class="link inline" id="scan-open-settings">Settings → Google Drive</button>. Then come back here.</p>
+          </div>
+
+          <div class="scan-progress hidden" id="scan-progress">
+            <div class="scan-row-list" id="scan-rows"></div>
+            <div class="scan-summary" id="scan-summary"></div>
+          </div>
+        </div>
+
+        <!-- Ready -->
+        <div class="onboard-pane" id="pane-ready" hidden>
+          <div class="onboard-eyebrow">You're set</div>
+          <h3 class="onboard-h">Four ways to remember</h3>
+          <div class="onboard-tiles">
+            <div class="tile">
+              <div class="tile-num">1</div>
+              <div class="tile-body">
+                <h4>Save what you read</h4>
+                <p>Open any page and press <kbd>⌃⇧S</kbd>. Highlighted text becomes the priority memory.</p>
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-num">2</div>
+              <div class="tile-body">
+                <h4>Drop in a file</h4>
+                <p>Drag any <code>.pdf</code>, <code>.md</code>, <code>.txt</code>, <code>.html</code> anywhere on this page.</p>
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-num">3</div>
+              <div class="tile-body">
+                <h4>Catch commitments</h4>
+                <p>Turn on reminder-watching for a chat site in Settings, and mem offers to remind you when someone gives you a deadline.</p>
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-num">4</div>
+              <div class="tile-body">
+                <h4>Sync your Drive</h4>
+                <p>Pull in your recent Docs, Slides, Sheets. <button class="link inline" id="ready-open-settings">Open Drive settings</button>.</p>
+              </div>
+            </div>
+          </div>
+          <div class="onboard-aux">
+            <button class="link inline" id="ready-demo">Load a 60-second demo</button>
+          </div>
+        </div>
+
+        <!-- Preview mode -->
+        <div class="onboard-pane" id="pane-install" hidden>
+          <div class="onboard-eyebrow">Preview mode</div>
+          <h3 class="onboard-h">You're previewing mem in a normal browser tab.</h3>
+          <p class="onboard-p">Drag-drop and search work here; saving real web pages, reminders, and the keyboard shortcut only work after you install mem as a Chrome extension.</p>
+          <ol class="onboard-list">
+            <li>Open <code>chrome://extensions</code>, toggle Developer mode.</li>
+            <li>Click <b>Load unpacked</b> → pick the <code>mem/extension/</code> folder.</li>
+            <li>Pin the mem icon, then come back here.</li>
+          </ol>
+          <div class="onboard-aux">
+            <button class="link inline" id="install-demo">Or load a demo right now →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="detail-overlay hidden" id="detail-overlay">
+    <div class="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <button class="close" id="detail-close" aria-label="Close">✕</button>
+      <div class="detail-meta" id="detail-meta"></div>
+      <h2 id="detail-title"></h2>
+      <div class="detail-tags" id="detail-tags"></div>
+      <div class="detail-section">
+        <h3>Summary</h3>
+        <p id="detail-summary"></p>
+      </div>
+      <div class="detail-section">
+        <h3>Key facts</h3>
+        <ul id="detail-facts"></ul>
+      </div>
+      <div class="detail-section" id="detail-selection-section">
+        <h3>What you highlighted</h3>
+        <blockquote id="detail-selection"></blockquote>
+      </div>
+      <div class="detail-section hidden" id="detail-episode-section">
+        <h3>Part of a session</h3>
+        <button class="link inline" id="detail-episode"></button>
+      </div>
+      <div class="detail-section hidden" id="detail-related-section">
+        <h3>Related</h3>
+        <div id="detail-related"></div>
+      </div>
+      <div class="detail-actions">
+        <a id="detail-link" class="primary" target="_blank" rel="noopener">Open original ↗</a>
+        <button id="detail-deepen" class="ghost" hidden>Deepen this</button>
+        <button id="detail-delete" class="danger">Forget this</button>
+      </div>
+      <p class="detail-deepen-hint" id="detail-deepen-hint" hidden>Title-only memory. "Deepen this" will fetch the page and re-summarize it with full content.</p>
+    </div>
+  </div>
+
+  <div class="drop-overlay" id="drop-overlay">
+    <div class="drop-box">
+      <div class="drop-glyph">↓</div>
+      <div class="drop-title">Drop to remember</div>
+      <div class="drop-sub">PDF, Markdown, text, or HTML</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>

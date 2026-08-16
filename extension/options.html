@@ -1,0 +1,201 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>mem — settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo">
+        <div class="glyph">m</div>
+        <div>
+          <h1>Settings</h1>
+          <p class="sub">mem · your second memory</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>AI provider</h2>
+      <p class="hint">mem uses your own key to summarize and recall. The key stays on this device and is sent only to the provider you choose.</p>
+      <div class="active-provider" id="active-provider">Currently using <strong id="active-provider-name">Gemini</strong></div>
+      <div class="segment" role="tablist" id="provider-segment">
+        <button type="button" role="tab" class="seg-btn" data-provider="local">On-device · no key</button>
+        <button type="button" role="tab" class="seg-btn active" data-provider="gemini">Google Gemini · free</button>
+        <button type="button" role="tab" class="seg-btn" data-provider="openai">OpenAI</button>
+      </div>
+      <p class="hint small" id="provider-cost" style="margin-top:14px;margin-bottom:14px">Free tier (gemini-2.5-flash) covers most personal use.</p>
+
+      <div id="key-block">
+        <div class="row">
+          <input id="api-key" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false" aria-label="API key" />
+          <button id="reveal" class="ghost" title="Show / hide">Show</button>
+        </div>
+        <div class="row gap">
+          <button id="save-key" class="primary">Save key</button>
+          <button id="test-key" class="ghost">Test connection</button>
+          <span id="key-status" class="status"></span>
+        </div>
+        <p class="hint small">Get a key at <a id="get-key-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com/app/apikey</a>.</p>
+      </div>
+
+      <div id="local-block" hidden>
+        <p class="hint small" id="local-state">Checking this browser's built-in AI…</p>
+        <div class="row gap">
+          <button id="local-download" class="primary" hidden>Download the model</button>
+          <span id="local-status" class="status"></span>
+        </div>
+        <p class="hint small">Summarizing and answering run on this machine, with no key and no quota. Semantic search in this mode matches on shared vocabulary rather than a learned model — weaker than a cloud embedding, but it works offline and nothing is sent anywhere.</p>
+      </div>
+
+      <label class="toggle" style="margin-top:16px">
+        <input type="checkbox" id="local-fallback" />
+        <span class="slider"></span>
+        <span class="label">Fall back to on-device AI when my key is missing, rate-limited, or offline</span>
+      </label>
+    </section>
+
+    <section class="panel">
+      <h2>Reminders from conversations</h2>
+      <p class="hint">On sites you turn this on for, mem watches messages for a time plus an obligation — "the report is due Friday at 3pm" — and offers to remind you. Detection happens entirely on this device with no model call, and nothing is sent anywhere unless you accept the reminder.</p>
+      <p class="hint small"><strong>Off everywhere by default.</strong> This reads the messages on the page it runs on, so add only the sites you want it on. It works on any messaging platform — Discord, Slack, WhatsApp Web, Teams, Messenger, a forum, anything.</p>
+      <div class="field">
+        <label for="watch-origins">Watch these sites (one origin per line)</label>
+        <textarea id="watch-origins" rows="4" placeholder="https://discord.com&#10;https://app.slack.com&#10;https://web.whatsapp.com"></textarea>
+      </div>
+      <div class="row gap wrap">
+        <button id="save-watch" class="primary">Save sites</button>
+        <button id="add-common" class="ghost">Add common messaging sites</button>
+        <span id="watch-status" class="status"></span>
+      </div>
+      <p class="hint small">Anywhere else, select text and choose <b>Remind me about this…</b> from the right-click menu — that works on every site with nothing turned on.</p>
+
+      <div class="field" style="margin-top:20px">
+        <label>Upcoming reminders</label>
+        <div id="reminder-list" class="mini-list"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Background deepening</h2>
+      <p class="hint">The first-run scan indexes thousands of pages by title alone. Those can be found but not answered from. Deepening quietly re-fetches the ones you actually cared about — pages you returned to, bookmarked, or read recently — and summarizes them properly.</p>
+      <div class="coverage" id="coverage-bar"><span id="coverage-fill"></span></div>
+      <p class="hint small" id="coverage-text">Checking coverage…</p>
+      <label class="toggle">
+        <input type="checkbox" id="deepen-enabled" />
+        <span class="slider"></span>
+        <span class="label">Deepen title-only memories in the background</span>
+      </label>
+      <div class="row gap wrap" style="margin-top:12px">
+        <button id="deepen-now" class="ghost">Deepen a few now</button>
+        <span id="deepen-status" class="status"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Ambient</h2>
+      <p class="hint">What mem does on the pages you visit.</p>
+      <label class="toggle">
+        <input type="checkbox" id="ambient-related" />
+        <span class="slider"></span>
+        <span class="label">Show a quiet pill when I've saved something related to this page</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="ambient-engagement" />
+        <span class="slider"></span>
+        <span class="label">Record how long I stayed and how far I scrolled</span>
+      </label>
+      <p class="hint small">Engagement is two numbers per page, stored locally. It's what makes "you started this and never finished it" possible at all — without it, that feature stays silent rather than guessing.</p>
+      <div class="row gap" style="margin-top:12px">
+        <button id="save-ambient" class="primary">Save</button>
+        <span id="ambient-status" class="status"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Connected extensions</h2>
+      <p class="hint">Other extensions can read and write your memories through mem's bridge. Previously any installed extension could do this without asking; now each one has to be approved here first.</p>
+      <div id="external-pending" class="mini-list"></div>
+      <div class="field" style="margin-top:14px">
+        <label>Approved</label>
+        <div id="external-allowed" class="mini-list"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Auto-capture</h2>
+      <p class="hint">When on, mem quietly saves every page you read. Otherwise use the save button, the right-click menu, or <kbd>Ctrl+Shift+S</kbd>.</p>
+      <label class="toggle">
+        <input type="checkbox" id="auto-capture" />
+        <span class="slider"></span>
+        <span class="label">Save pages automatically as I browse</span>
+      </label>
+      <div class="field">
+        <label for="blocklist">Never auto-capture these domains (one per line)</label>
+        <textarea id="blocklist" rows="5" placeholder="mail.google.com&#10;banking.example.com&#10;localhost"></textarea>
+      </div>
+      <button id="save-prefs" class="primary">Save preferences</button>
+      <span id="prefs-status" class="status"></span>
+    </section>
+
+    <section class="panel">
+      <h2>Files</h2>
+      <p class="hint">Pull in anything sitting on your disk — class notes, research, Drive-synced folders. Each file is summarized and embedded the same way as a web page.</p>
+      <div class="row gap wrap">
+        <button id="pick-files" class="primary">Import files…</button>
+        <input id="files-input" type="file" multiple accept=".txt,.md,.markdown,.mdown,.mdx,.rst,.log,.csv,.tsv,.html,.htm,.json,.pdf" hidden />
+        <span id="files-status" class="status"></span>
+      </div>
+      <p class="hint small">Supported now: <code>.txt</code> · <code>.md</code> · <code>.html</code> · mem JSON exports. <code>.pdf</code> works after dropping pdf.js into <code>vendor/pdfjs/</code> — see that folder's README. <code>.docx</code> is on the roadmap.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Google account</h2>
+      <p class="hint">Connect once. mem pulls Drive (Docs / Slides / Sheets), Gmail subjects, YouTube playlists, and Calendar — all read-only, all into your local memory.</p>
+
+      <div class="row gap">
+        <button id="drive-connect" class="primary">Connect Google</button>
+        <button id="drive-disconnect" class="ghost" hidden>Disconnect</button>
+        <span id="drive-status" class="status"></span>
+      </div>
+
+      <div class="row gap" style="margin-top:12px">
+        <button id="drive-sync" class="ghost" hidden>Sync Drive now</button>
+        <span id="drive-sync-status" class="status"></span>
+      </div>
+
+      <details style="margin-top:18px" id="drive-setup-details">
+        <summary class="hint" style="cursor:pointer;color:var(--text-2);font-size:13px">One-time setup (~5 min, only if Connect fails)</summary>
+        <p class="hint small" style="margin-top:10px">Full step-by-step walkthrough with every click is in <code>mem/SETUP_GOOGLE.md</code>. Short version:</p>
+        <ol class="hint" style="margin-top:10px;padding-left:20px;line-height:1.8;font-size:13px">
+          <li>Open <code>chrome://extensions</code>, copy this extension's <b>ID</b>.</li>
+          <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> → create a project → enable the Drive / Gmail / YouTube Data v3 / Calendar APIs.</li>
+          <li><b>OAuth consent screen</b> (or <b>Google Auth Platform → Branding</b>): pick <b>External</b>, fill in app name + your email. Under <b>Scopes</b>, add the four <code>.readonly</code> scopes. Under <b>Test users</b>, add your own Gmail.</li>
+          <li><b>Credentials</b> → <b>+ Create credentials</b> → <b>OAuth client ID</b> → type <b>Chrome extension</b>. Item ID = the extension ID from step 1.</li>
+          <li>Copy the resulting <code>...apps.googleusercontent.com</code> string. Paste it into <code>extension/manifest.json</code> replacing <code>YOUR_GOOGLE_OAUTH_CLIENT_ID</code>. Reload the extension.</li>
+        </ol>
+        <p class="hint small" style="margin-top:8px">Why this can't be zero-setup: Chrome ties each OAuth client to a specific extension ID, and unpacked extensions have a per-machine ID. So someone has to pair them, and that has to be you, once per machine.</p>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2>Your memory</h2>
+      <p class="hint"><span id="mem-count">0</span> memories stored locally · approx <span id="mem-size">0</span></p>
+      <div class="row gap wrap">
+        <button id="export" class="ghost">Export as JSON</button>
+        <button id="import" class="ghost">Import…</button>
+        <input id="import-file" type="file" accept="application/json" hidden />
+        <button id="clear" class="danger">Erase everything</button>
+      </div>
+      <span id="data-status" class="status"></span>
+    </section>
+
+    <footer>
+      <span>mem v0.1 · local-first · your data never leaves your device except for OpenAI calls</span>
+    </footer>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "manifest_version": 3,
+  "name": "mem — your second memory",
+  "short_name": "mem",
+  "version": "0.2.0",
+  "description": "A personal AI memory layer for everything you read, watch, and are told. Save it, recall it, and be reminded of what you'd otherwise forget.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "tabs",
+    "unlimitedStorage",
+    "identity",
+    "history",
+    "bookmarks",
+    "alarms",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://www.googleapis.com/*",
+    "https://oauth2.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "mem — save & recall"
+  },
+  "options_page": "options.html",
+  "oauth2": {
+    "client_id": "488954190154-f2jll59792qcnkb7brklng6ujb08qhg6.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/youtube.readonly",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+      "https://www.googleapis.com/auth/classroom.announcements.readonly"
+    ]
+  },
+  "commands": {
+    "save-page": {
+      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" },
+      "description": "Save the current page to mem"
+    },
+    "open-dashboard": {
+      "suggested_key": { "default": "Ctrl+Shift+M", "mac": "Command+Shift+M" },
+      "description": "Open the mem dashboard"
+    }
+  },
+  "externally_connectable": {
+    "ids": ["*"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["lib/commitments.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": [
+        "https://*.google.com/*",
+        "https://accounts.google.com/*",
+        "https://*.bank/*"
+      ],
+      "js": ["ambient.js"],
+      "run_at": "document_idle",
+      "world": "ISOLATED",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://localhost:3462/*",
+        "http://127.0.0.1:3462/*",
+        "https://*.lifeos.app/*",
+        "https://lifeos.app/*"
+      ],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ]
+}

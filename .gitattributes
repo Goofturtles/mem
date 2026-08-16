@@ -1,0 +1,8 @@
+# Normalise to LF in the repo. Without this, Windows checkouts rewrite every
+# file to CRLF and the first commit from another machine shows as a whole-file
+# diff.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary

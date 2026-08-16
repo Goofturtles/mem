@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Generate mem icons</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; background: #0a0a0b; color: #e6e6e6; padding: 32px; }
+    canvas { background: transparent; margin: 8px; image-rendering: -webkit-optimize-contrast; }
+    button { background: #5b8def; color: white; border: 0; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    p { color: #999; max-width: 540px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>mem — icon generator</h1>
+  <p>Open this once. Click <strong>Generate</strong>, then save each canvas as <code>16.png</code>, <code>48.png</code>, <code>128.png</code> into this folder. Re-enable the <code>icons</code> block in <code>manifest.json</code> after saving.</p>
+  <div id="canvases"></div>
+  <button onclick="downloadAll()">Download all as PNG</button>
+
+  <script>
+    const sizes = [16, 48, 128];
+    const cs = document.getElementById('canvases');
+    const canvases = {};
+    for (const s of sizes) {
+      const c = document.createElement('canvas');
+      c.width = s; c.height = s; c.style.width = s + 'px'; c.style.height = s + 'px';
+      cs.appendChild(c);
+      canvases[s] = c;
+      const ctx = c.getContext('2d');
+      // Rounded square background, gradient blue → violet
+      const grad = ctx.createLinearGradient(0, 0, s, s);
+      grad.addColorStop(0, '#5b8def');
+      grad.addColorStop(1, '#a96bff');
+      ctx.fillStyle = grad;
+      const r = s * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(s - r, 0); ctx.quadraticCurveTo(s, 0, s, r);
+      ctx.lineTo(s, s - r); ctx.quadraticCurveTo(s, s, s - r, s);
+      ctx.lineTo(r, s); ctx.quadraticCurveTo(0, s, 0, s - r);
+      ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.fill();
+      // 'm' glyph
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${s * 0.62}px -apple-system, system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('m', s / 2, s * 0.56);
+    }
+    function downloadAll() {
+      for (const s of sizes) {
+        const url = canvases[s].toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url; a.download = `${s}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+    }
+  </script>
+</body>
+</html>

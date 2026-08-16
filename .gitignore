@@ -1,0 +1,28 @@
+# Never commit secrets. API keys live in chrome.storage.local at runtime and
+# should never reach the repo.
+*.key
+.env
+.env.*
+secrets.json
+
+# pdf.js is dropped in by hand — see extension/vendor/pdfjs/README.md
+extension/vendor/pdfjs/*.js
+
+# Generated icons (regenerate from extension/icons/generate.html)
+extension/icons/*.png
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local exports of the user's own memories — these contain personal data
+mem-export-*.json
+
+__pycache__/
+*.pyc
+node_modules/
