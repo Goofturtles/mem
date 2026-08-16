@@ -7,6 +7,8 @@ then lets you ask questions across all of it — with the passage that actually
 answered you, cited. It runs entirely on your machine. You can use your own API
 key, or no key at all.
 
+**→ [TRY_IT.md](TRY_IT.md) — try it in 3 minutes, no account and no API key.**
+
 ## Why this isn't your browser history
 
 Chrome history can already tell you which URLs you visited and when. Everything

@@ -68,6 +68,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_DEEPEN) {
     if (scanState.running) return; // don't compete with a first-run scan
     try {
+      // boot() may still be running reconcile(), which rebuilds the ordinal
+      // table. Compaction inside runDeepenPass rebuilds it too, and the
+      // in-flight guard only serialises compaction against itself — two
+      // writers interleaving here would each lose the other's work. boot() is
+      // memoised, so awaiting it is free once it has completed.
+      await boot();
       const res = await runDeepenPass({ max: 4 });
       if (res.deepened) console.log(`[mem] background deepen: ${res.deepened} upgraded`);
     } catch (e) {
@@ -269,6 +275,10 @@ async function handleMessage(msg, sender) {
     case 'deepen-set-enabled':
       return { ok: true, enabled: await setDeepenEnabled(msg.enabled) };
     case 'deepen-run-now':
+      // Same reason as the alarm path: reconcile() inside boot() and
+      // compaction inside runDeepenPass are both ordinal-table writers, and
+      // interleaving them makes every memory look orphaned.
+      await boot();
       return { ok: true, ...(await runDeepenPass({ max: msg.max || 5 })) };
 
     // ----- scanning -----
@@ -297,6 +307,9 @@ async function handleMessage(msg, sender) {
       return { ok: true, added };
     }
     case 'index-reconcile':
+      // boot() may already be running a reconcile; awaiting it makes this a
+      // no-op rather than a second concurrent pass over the ordinal table.
+      await boot();
       return { ok: true, ...(await index.reconcile()) };
     case 'erase-everything':
       await store.clear();

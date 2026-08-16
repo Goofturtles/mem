@@ -244,7 +244,7 @@ export function parseWhen(text, now = Date.now()) {
   const relative = parseRelative(text, now);
   // "in 2 hours" is as deliberate as naming a weekday, so it counts as
   // naming a day for the purposes of standing in for a cue word.
-  if (relative) return { at: relative.at, whenText: relative.text, explicit: true, namesADay: true };
+  if (relative) return { at: relative.at, whenText: relative.text, explicit: true, namesADay: true, hasClock: true };
 
   const day = parseDay(text, now);
   const clock = parseClock(text);
@@ -263,6 +263,7 @@ export function parseWhen(text, now = Date.now()) {
       whenText: clock ? `${day.text} at ${formatClock(hour, minute)}` : day.text,
       explicit: day.explicit,
       namesADay: true,
+      hasClock: !!clock && !clock.vague,
     };
   }
 
@@ -270,7 +271,7 @@ export function parseWhen(text, now = Date.now()) {
     // A bare clock time means the next occurrence of it.
     let at = atTime(now, clock.hour, clock.minute);
     if (at <= now) at += DAY;
-    return { at, whenText: formatClock(clock.hour, clock.minute), explicit: !clock.vague, namesADay: false };
+    return { at, whenText: formatClock(clock.hour, clock.minute), explicit: !clock.vague, namesADay: false, hasClock: !clock.vague };
   }
 
   return null;
@@ -288,6 +289,10 @@ function formatClock(hour, minute) {
 // addressed to anyone: timestamps, scores, version numbers, code.
 const NOISE = /^\s*(https?:\/\/|[\[\{<]|\d+[-–]\d+\s*$)/;
 
+// Past-tense narration. Checked before anything else scores, because these
+// lines often parse a perfectly plausible future time.
+const PAST_TENSE = /\b(was|were|went|had|used to|did you|didn'?t|yesterday|last night|last week|last weekend|last month|ago)\b/i;
+
 /**
  * Decide whether a message contains something worth offering to remind about.
  *
@@ -302,6 +307,11 @@ export function detectCommitment(text, { now = Date.now(), minConfidence = 0.45 
   if (raw.length < 8 || raw.length > 600) return null;
   if (NOISE.test(raw)) return null;
 
+  // Narration about the past is never a commitment, however plausible a
+  // future time it happens to parse. "this weekend was wild" and "did you
+  // see the game last night" both did.
+  if (/(was|were|went|did you|had|used to|yesterday|last night|last week|last month|ago)/i.test(raw)) return null;
+
   const when = parseWhen(raw, now);
   if (!when) return null;
 
@@ -310,6 +320,12 @@ export function detectCommitment(text, { now = Date.now(), minConfidence = 0.45 
   if (when.at < now - 5 * MIN) return null;
   // Beyond a year out is almost always a false parse.
   if (when.at > now + 365 * DAY) return null;
+
+  // Narration about the past is never a commitment, however plausible a
+  // future time it happens to parse. "did you see the game last night" has a
+  // cue ("game") and parses to 8pm; "this weekend was wild" parses to
+  // Saturday. Both are someone talking about something that already happened.
+  if (PAST_TENSE.test(raw)) return null;
 
   let confidence = 0;
   let cue = null;
@@ -320,7 +336,7 @@ export function detectCommitment(text, { now = Date.now(), minConfidence = 0.45 
   if (strong) { confidence += 0.55; cue = strong[1]; }
   else if (medium) { confidence += 0.40; cue = medium[1]; }
   else if (weak) { confidence += 0.24; cue = weak[1]; }
-  else if (when.namesADay) {
+  else if (when.namesADay && when.hasClock) {
     // Naming a specific future day is itself the signal. Requiring a cue word
     // as well meant real messages went unnoticed — "hackathon ending tmrw at
     // 12pm" has an unmistakable deadline and not one word from any cue list,

@@ -20,6 +20,7 @@
 
 import * as store from './storage.js';
 import { ingest } from './ingest.js';
+import { isZero } from './vec.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 const FAILED_KEY = 'deepenFailures';
@@ -363,7 +364,11 @@ async function drainReembedQueue({ onProgress } = {}) {
     let restored = 0;
     for (const m of records) {
       const rec = onDisk.get(m.id);
-      if (rec?.docVec && rec.space === stats.space) {
+      // isZero matters: an all-zero Float32Array is truthy, and its space
+      // matches, so a document queued *because* its vector quantised to a
+      // zero scale would take the free-restore path, be re-added at scale 0,
+      // and be re-queued — healing never, where before it was re-embedded.
+      if (rec?.docVec && !isZero(rec.docVec) && rec.space === stats.space) {
         await index.addDoc({
           id: m.id, vec: rec.docVec, space: rec.space, createdAt: m.createdAt,
           chunks: null,
