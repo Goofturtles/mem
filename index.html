@@ -4,23 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>mem — your second memory</title>
-  <meta name="description" content="mem is a free Chrome extension that remembers what you read, watch, and are told — stored locally in your browser — so you can ask for it back in plain English.">
+  <meta name="description" content="A free Chrome extension that remembers what you read, watch, and are told — stored locally — so you can ask for it back in plain English.">
+  <meta property="og:title" content="mem — your second memory">
+  <meta property="og:description" content="A free Chrome extension that remembers what you read, watch, and are told — stored locally — so you can ask for it back in plain English.">
+  <meta property="og:image" content="https://goofturtles.github.io/mem/assets/screenshot-memories.png">
+  <meta property="og:url" content="https://goofturtles.github.io/mem/">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./assets/icon128.png">
   <style>
     :root {
-      --text: #1d1d1f;
-      --text-secondary: #6e6e73;
-      --border: #d2d2d7;
-      --surface: #f5f5f7;
+      color-scheme: dark;
+      --bg: #0a0a0b;
+      --text: #f5f5f7;
+      --text-secondary: #a1a1a6;
+      --border: #2c2c2e;
+      --surface: #161618;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
 
     body {
       font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
-      background: #ffffff;
+      background: var(--bg);
       color: var(--text);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
@@ -32,8 +41,8 @@
     .btn:focus-visible {
       outline: 2px solid var(--text);
       outline-offset: 3px;
-      border-radius: 4px;
     }
+    a:not(.btn):focus-visible { border-radius: 4px; }
 
     .container {
       max-width: 980px;
@@ -47,7 +56,6 @@
       align-items: center;
       justify-content: center;
       background: #ffffff;
-      border: 1px solid var(--border);
       border-radius: 22%;
       font-weight: 700;
       color: #1d1d1f;
@@ -64,7 +72,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: #ffffff;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
     }
     .header-inner {
@@ -133,15 +141,15 @@
     }
     .btn {
       display: inline-block;
-      background: #1d1d1f;
-      color: #ffffff;
+      background: #ffffff;
+      color: #0a0a0b;
       text-decoration: none;
       font-size: 1rem;
       font-weight: 600;
       padding: 14px 28px;
       border-radius: 980px;
     }
-    .btn:hover { background: #000000; }
+    .btn:hover { background: #e8e8ed; }
     .link-secondary {
       font-size: 1rem;
       color: var(--text);
@@ -157,7 +165,7 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
     }
     .screenshot img {
       display: block;
@@ -196,7 +204,7 @@
     .feature kbd {
       font-family: inherit;
       font-size: 0.875em;
-      border: 1px solid var(--border);
+      border: 1px solid #6e6e73;
       border-radius: 6px;
       padding: 1px 6px;
       white-space: nowrap;
@@ -310,7 +318,7 @@
 
   <header>
     <div class="container header-inner">
-      <a class="brand" href="#" aria-label="mem home">
+      <a class="brand" href="./" aria-label="mem home">
         <span class="chip chip--sm" aria-hidden="true">m</span>
         mem
       </a>
@@ -341,7 +349,7 @@
 
     <section class="screenshot container" aria-label="Product screenshot">
       <figure>
-        <img src="./assets/screenshot-memories.png" width="1280" height="800"
+        <img src="./assets/screenshot-memories.png" width="1800" height="1240"
              alt="The mem Memories view: a dark interface listing saved pages, each with an automatic summary and tags, above a search box for asking questions in plain English.">
       </figure>
     </section>
