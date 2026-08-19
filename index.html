@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mem — your second memory</title>
+  <meta name="description" content="mem is a free Chrome extension that remembers what you read, watch, and are told — stored locally in your browser — so you can ask for it back in plain English.">
+  <link rel="icon" href="./assets/icon128.png">
+  <style>
+    :root {
+      --text: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --border: #d2d2d7;
+      --surface: #f5f5f7;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: #ffffff;
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+
+    a:focus-visible,
+    .btn:focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Chip logo */
+    .chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 22%;
+      font-weight: 700;
+      color: #1d1d1f;
+      line-height: 1;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .chip--sm { width: 32px; height: 32px; font-size: 18px; }
+    .chip--lg { width: 64px; height: 64px; font-size: 36px; }
+    .chip--footer { width: 28px; height: 28px; font-size: 16px; }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+    nav ul {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      list-style: none;
+    }
+    nav a {
+      text-decoration: none;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    nav a:hover { text-decoration: underline; }
+
+    /* Hero */
+    .hero {
+      padding: 96px 0 72px;
+      text-align: center;
+    }
+    .hero .chip--lg { margin: 0 auto 16px; }
+    .hero .wordmark {
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 4px;
+    }
+    .hero .tagline {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+    }
+    .hero h1 {
+      font-size: clamp(2.25rem, 6vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      max-width: 640px;
+      margin: 0 auto 20px;
+    }
+    .hero .subhead {
+      font-size: clamp(1.0625rem, 2.5vw, 1.25rem);
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto 40px;
+    }
+    .cta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      background: #1d1d1f;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 980px;
+    }
+    .btn:hover { background: #000000; }
+    .link-secondary {
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* Screenshot */
+    .screenshot {
+      padding: 0 0 96px;
+    }
+    .screenshot figure {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    }
+    .screenshot img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Features */
+    .features { padding: 0 0 96px; }
+    .features h2,
+    .privacy h2 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 48px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px 48px;
+    }
+    .feature {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+    .feature h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .feature p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+    .feature kbd {
+      font-family: inherit;
+      font-size: 0.875em;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    /* Privacy */
+    .privacy {
+      background: var(--surface);
+      padding: 96px 0;
+    }
+    .privacy .lede {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: -28px 0 40px;
+    }
+    .privacy ul {
+      list-style: none;
+      max-width: 640px;
+    }
+    .privacy li {
+      position: relative;
+      padding: 0 0 20px 32px;
+      font-size: 1.0625rem;
+    }
+    .privacy li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 7px;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--text);
+      border-radius: 50%;
+    }
+    .privacy li strong { font-weight: 600; }
+    .privacy .policy-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* Closing CTA */
+    .closing {
+      padding: 96px 0;
+      text-align: center;
+    }
+    .closing h2 {
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .closing p {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0 48px;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9375rem;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 0.875rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .footer-links a:hover { text-decoration: underline; }
+    .copyright {
+      width: 100%;
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 64px 0 56px; }
+      .feature-grid { grid-template-columns: 1fr; gap: 32px; }
+      .privacy, .closing { padding: 72px 0; }
+      nav ul { gap: 16px; }
+      nav a { font-size: 0.8125rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="#" aria-label="mem home">
+        <span class="chip chip--sm" aria-hidden="true">m</span>
+        mem
+      </a>
+      <nav aria-label="Site">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="https://github.com/Goofturtles/mem">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="hero container">
+      <div class="chip chip--lg" aria-hidden="true">m</div>
+      <p class="wordmark">mem</p>
+      <p class="tagline">your second memory</p>
+      <h1>Ask anything you&rsquo;ve ever read.</h1>
+      <p class="subhead">mem remembers what you read, watch, and are told &mdash; so you can ask for it back in plain English.</p>
+      <div class="cta-row">
+        <!-- TODO: swap href to the Chrome Web Store listing URL once approved -->
+        <a class="btn" href="https://github.com/Goofturtles/mem">Get mem for Chrome</a>
+        <a class="link-secondary" href="https://github.com/Goofturtles/mem">View on GitHub</a>
+      </div>
+    </section>
+
+    <section class="screenshot container" aria-label="Product screenshot">
+      <figure>
+        <img src="./assets/screenshot-memories.png" width="1280" height="800"
+             alt="The mem Memories view: a dark interface listing saved pages, each with an automatic summary and tags, above a search box for asking questions in plain English.">
+      </figure>
+    </section>
+
+    <section class="features container" id="features">
+      <h2>What it does</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>Save anything</h3>
+          <p>One click or <kbd>Ctrl+Shift+S</kbd>. mem summarizes the page, tags it, and files it.</p>
+        </div>
+        <div class="feature">
+          <h3>Ask in plain English</h3>
+          <p>&ldquo;What did I read about solar cells?&rdquo; Answers come from your own history, with sources.</p>
+        </div>
+        <div class="feature">
+          <h3>Never miss a deadline</h3>
+          <p>On chat sites you opt into, mem spots &ldquo;due Friday at 3pm&rdquo; and offers a reminder. An on-device AI checks each one so timestamps don&rsquo;t bother you.</p>
+        </div>
+        <div class="feature">
+          <h3>One timeline</h3>
+          <p>Optional read-only Google connections (Drive, Gmail, YouTube, Calendar, Classroom) fold into the same memory.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="privacy" id="privacy">
+      <div class="container">
+        <h2>Private by design.</h2>
+        <p class="lede">Your memory belongs on your machine, not on someone else&rsquo;s server.</p>
+        <ul>
+          <li><strong>Everything stays local.</strong> Stored in your browser&rsquo;s IndexedDB. No mem server, no account.</li>
+          <li><strong>On-device AI by default.</strong> Chrome&rsquo;s built-in model does the work &mdash; or bring your own Gemini or OpenAI key.</li>
+          <li><strong>Conversation watching is off by default.</strong> You opt in per site, and you can turn it off just as easily.</li>
+          <li><strong>Your data, your call.</strong> Export or erase everything at any time.</li>
+        </ul>
+        <a class="policy-link" href="https://goofturtles.github.io/mem-privacy/privacy-policy.html">Read the privacy policy</a>
+      </div>
+    </section>
+
+    <section class="closing container">
+      <h2>Stop losing what you learn.</h2>
+      <p>mem is free and takes a minute to set up.</p>
+      <!-- TODO: swap href to the Chrome Web Store listing URL once approved -->
+      <a class="btn" href="https://github.com/Goofturtles/mem">Get mem for Chrome</a>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="chip chip--footer" aria-hidden="true">m</span>
+        <span>mem &mdash; your second memory</span>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://goofturtles.github.io/mem-privacy/privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="https://github.com/Goofturtles/mem">GitHub</a></li>
+        <li><a href="https://github.com/Goofturtles/mem/issues">Report an issue</a></li>
+      </ul>
+      <p class="copyright">&copy; 2026 Arjun Sharma</p>
+    </div>
+  </footer>
+
+</body>
+</html>
