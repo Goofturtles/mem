@@ -4,7 +4,11 @@ No account. No API key needed. Nothing leaves your computer.
 
 ---
 
-## Step 1 — Load the extension (60 seconds)
+## Step 1 — Install the extension (60 seconds)
+
+**The easy way:** [install mem from the Chrome Web Store](https://chromewebstore.google.com/detail/mepjgndefdedophcmeeanmbbjhoedigo), pin it, and skip to Step 2.
+
+**Or from source:**
 
 1. Download or clone this repo.
 2. Open Chrome and go to **`chrome://extensions`**

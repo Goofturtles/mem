@@ -64,6 +64,10 @@ YouTube, Calendar, Classroom, bookmarks, and six months of browser history.
 
 ## Install
 
+**[Get mem on the Chrome Web Store](https://chromewebstore.google.com/detail/mepjgndefdedophcmeeanmbbjhoedigo)** — one click, then pin the mem icon and open the dashboard (`Ctrl+Shift+M`).
+
+Or run it from source:
+
 1. Open `chrome://extensions`, toggle **Developer mode**.
 2. **Load unpacked** → pick the `extension/` folder.
 3. Pin the mem icon, open the dashboard (`Ctrl+Shift+M`), and choose how it thinks.
